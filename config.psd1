@@ -1,4 +1,9 @@
 @{
+    features = @(
+        'DHCP',
+        'AD-Domain-Services',
+        'Print-Server'
+    )
     dnsdomain = "paul.loc"
     netbiosdomain = "PAUL"
     recoverypassword = "Password95"
@@ -24,7 +29,7 @@
             endrange = "10.10.30.254"
             subnet = "255.255.255.0"
         }
-    ),
+    )
     users = @(
         @{
             name = "guitou1"

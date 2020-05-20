@@ -1,46 +1,67 @@
-## Config import
-
-$configfile = "config.psd1"
-
-if (Test-Path -Path $configfile) {
-} else {
-    Write-Host ("File " + $configfile + " does not exists")
-    exit 1
+# Enable features
+function enablefeatures () {
+    foreach ($feature in $config.features) {
+        Add-WindowsFeature -Name $feature -IncludeManagementTools
+    }
 }
-
-try {
-    $config = Import-PowerShellDataFile -Path $configfile
-}
-catch {
-    Write-Host $_.Exception
-}
-
-$safepassword = ConvertTo-SecureString -String $config.recoverypassword -AsPlainText -Force
 
 ## Active directory
-Add-WindowsFeature -Name "AD-Domain-Services" -IncludeManagementTools
-
-try {
-    Install-ADDSForest -DomainName $config.dnsdomain -DomainNetbiosName $config.netbiosdomain -InstallDns -SafeModeAdministratorPassword safepassword -Confirm -Force
-}
-catch [System.Management.Automation.ParameterBindingException] {
-    Write-Host $_.Exception
-    Write-Host "Error occured"
+function activedirectory() {
+    $config = $args[0]
+    try {
+        Install-ADDSForest -DomainName $config.dnsdomain -DomainNetbiosName $config.netbiosdomain -InstallDns -SafeModeAdministratorPassword safepassword -Confirm -Force
+    }
+    catch [System.Management.Automation.ParameterBindingException] {
+        Write-Host $_.Exception
+        Write-Host "Error occured"
+    }
 }
 
 ## DHCP
-Add-WindowsFeature -Name "DHCP" -IncludeManagementTools
+function dhcp () {
+    $config = $args[0]
+    foreach ($dhcpconfig in $config.dhcpconfigs) {
+        try {
+            Add-DhcpServerv4Scope -Name ($dhcpconfig.domain + '.' + $config.dnsdomain) -StartRange $dhcpconfig.startrange -EndRange $dhcpconfig.endrange -SubnetMask $dhcpconfig.subnet
+        }
+        catch [Microsoft.Management.Infrastructure.CimException] {
+            Write-Host $_
+        }
+        finally {
+            Write-Host ("Updating " + $dhcpconfig.scopid + " zone")
+            Set-DhcpServerv4Scope -ScopeId $dhcpconfig.scopid -Name ($dhcpconfig.domain + '.' + $config.dnsdomain) -StartRange $dhcpconfig.startrange -EndRange $dhcpconfig.endrange
+        }
+    }
+}
 
-## Creating DHCP zones
-foreach ($dhcpconfig in $config.dhcpconfigs) {
+function main () {
+    ## Config import
+    $configfile = $args[0]
+
+    if (Test-Path -Path $configfile) {
+    } else {
+        Write-Host ("File " + $configfile + " does not exists")
+        exit 1
+    }
+
     try {
-        Add-DhcpServerv4Scope -Name ($dhcpconfig.domain + '.' + $config.dnsdomain) -StartRange $dhcpconfig.startrange -EndRange $dhcpconfig.endrange -SubnetMask $dhcpconfig.subnet
+        $config = Import-PowerShellDataFile -Path $configfile
     }
-    catch [Microsoft.Management.Infrastructure.CimException] {
-        Write-Host $_
+    catch {
+        Write-Host $_.Exception
     }
-    finally {
-        Write-Host ("Updating " + $dhcpconfig.scopid + " zone")
-        Set-DhcpServerv4Scope -ScopeId $dhcpconfig.scopid -Name ($dhcpconfig.domain + '.' + $config.dnsdomain) -StartRange $dhcpconfig.startrange -EndRange $dhcpconfig.endrange
-    }
+
+    $safepassword = ConvertTo-SecureString -String $config.recoverypassword -AsPlainText -Force
+
+    enablefeatures $config
+    activedirectory $config
+    dhcp $config
+}
+
+if ($args.Length -gt 0) {
+    main $args[0]
+} else {
+    Write-Host ("Arguments not fully specified")
+    Write-Host ("Specify config file as argument like: CreationDomain.ps1 <config file name>")
+    exit 1
 }

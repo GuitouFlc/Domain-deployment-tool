@@ -9,7 +9,7 @@ function enablefeatures () {
 function activedirectory() {
     $config = $args[0]
     try {
-        Install-ADDSForest -DomainName $config.dnsdomain -DomainNetbiosName $config.netbiosdomain -InstallDns -SafeModeAdministratorPassword safepassword -Confirm -Force
+        Install-ADDSForest -DomainName $config.dnsdomain -DomainNetbiosName $config.netbiosdomain -InstallDns -SafeModeAdministratorPassword $config.safepassword -Confirm -Force
     }
     catch [System.Management.Automation.ParameterBindingException] {
         Write-Host $_.Exception
@@ -51,7 +51,7 @@ function main () {
         Write-Host $_.Exception
     }
 
-    $safepassword = ConvertTo-SecureString -String $config.recoverypassword -AsPlainText -Force
+    $config.safepassword = ConvertTo-SecureString -String $config.recoverypassword -AsPlainText -Force
 
     enablefeatures $config
     activedirectory $config

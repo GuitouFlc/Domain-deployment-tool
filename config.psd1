@@ -24,5 +24,13 @@
             endrange = "10.10.30.254"
             subnet = "255.255.255.0"
         }
+    ),
+    users = @(
+        @{
+            name = "guitou1"
+        },
+        @{
+            name = "guitou2"
+        }
     )
 }

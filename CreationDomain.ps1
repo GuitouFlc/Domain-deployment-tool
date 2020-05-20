@@ -1,6 +1,20 @@
-## Import de la configuration
+## Config import
 
-$config = Import-PowerShellDataFile -Path "config.psd1"
+$configfile = "config.psd1"
+
+if (Test-Path -Path $configfile) {
+} else {
+    Write-Host ("File " + $configfile + " does not exists")
+    exit 1
+}
+
+try {
+    $config = Import-PowerShellDataFile -Path $configfile
+}
+catch {
+    Write-Host $_.Exception
+}
+
 $safepassword = ConvertTo-SecureString -String $config.recoverypassword -AsPlainText -Force
 
 ## Active directory
@@ -9,7 +23,7 @@ Add-WindowsFeature -Name "AD-Domain-Services" -IncludeManagementTools
 try {
     Install-ADDSForest -DomainName $config.dnsdomain -DomainNetbiosName $config.netbiosdomain -InstallDns -SafeModeAdministratorPassword safepassword -Confirm -Force
 }
-catch [TestFailedException] {
+catch [System.Management.Automation.ParameterBindingException] {
     Write-Host $_.Exception
     Write-Host "Error occured"
 }

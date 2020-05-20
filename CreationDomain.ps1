@@ -1,7 +1,8 @@
 $dnsdomain = "paul.loc"
 $netbiosdomain = "PAUL"
+$recoverypassword = "Password95"
 
-$safepassword = ConvertTo-SecureString -String "95MesCouilles" -AsPlainText -Force
+$safepassword = ConvertTo-SecureString -String $recoverypassword -AsPlainText -Force
 
 Add-WindowsFeature AD-Domain-Services
 

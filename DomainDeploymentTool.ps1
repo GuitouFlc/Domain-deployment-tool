@@ -88,13 +88,6 @@ function sharefolder() {
     $permission = $Everyone,"ListDirectory","ObjectInherit,ContainerInherit","None","Allow"
     $accessRule = New-Object System.Security.AccessControl.FileSystemAccessRule $permission
     $acl.AddAccessRule($accessRule)
-<#
-    # Owner Deny control
-    $creatorOwner = [System.Security.Principal.NTAccount] "Creator Owner"
-    $permission = $creatorOwner,"FullControl","ObjectInherit","ContainerInherit","InheritOnly","Deny"
-    $accessRule = New-Object System.Security.AccessControl.FileSystemAccessRule $permission
-    $acl.AddAccessRule($accessRule)
-#>
     $acl | Set-Acl $folder
 
     try {
@@ -106,28 +99,6 @@ function sharefolder() {
     }
     Write-Host "end of SMB Share configuration"    
 }
-<#
-function wds (){
-    $wdsUtilResult = wdsutil /initialize-server /remInst:"C:\remInstall"
-    $wdsUtilResult | Select-Object -last 1
-    
-    $WDSBoot = "D:\sources\boot.wim"
-    $WdsGroupName = "W10-Desktop"
-    $WDSImage = "D:\sources\install.wim" | Select-Object Imagename
-    $ImageName = "Windows 10 Pro"
-    
-    Import-WdsBootImage -Path $WDSBoot
-    Write-Host $WDSBoot
-    Start-Sleep 2
-    New-WdsInstallImageGroup -Name $WdsGroupName
-    Write-Host $WdsGroupName
-    Start-Sleep 2
-    Get-WindowsImage -ImagePath $WDSImage | Select-Object Imagename
-    Write-Host $WDSImage
-    Start-Sleep 2
-    Import-WdsInstallImage -ImageGroup $WdsGroupName -Path $WDSImage -ImageName $ImageName
-}
-#>
 function main () {
     ## Config import
     $configfile = $args[0]
@@ -152,7 +123,6 @@ function main () {
     dhcp $config
     AddPrint $config
     sharefolder $config
-#    wds $config
 }
 
 if ($args.Length -gt 0) {

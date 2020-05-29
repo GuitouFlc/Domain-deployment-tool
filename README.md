@@ -5,11 +5,11 @@ Features:
     - DHCP
     - AD DS
     - Print Service
+    - Add Cups-PDF Printer and Drivers
     - File Service
     - SMB share
-    
-To Do : manage ADDS error etc...
-        Add MDT
-        Add Users creation from CSV
-    
+    - Add Users from CSV
+    - Create Home directory
+    - Automatic mount Drive for Homedirectory
+    - Setup Rights    
     

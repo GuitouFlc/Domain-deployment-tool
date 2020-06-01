@@ -12,19 +12,37 @@ $surname = $_.Nom
 $samAccName = $firstname + " " + $surname
 $DefaultPassword = (ConvertTo-SecureString $config.DefaultUserPass -AsPlainText -Force)
 
-$completePath = $config.ServerDrive + "\" + $config.ShareDir
-$HomeLocation = $config.ServerDrive + "\" + $config.Path + "\" + $SamAccName
-$HomeFolder = "\\" + $env:Computername + "\" + $config.Path + "\" + $SamAccName
+$UserOUPath = "OU=" + $_.Departement + "," + $config.OUPath
+$completePath = $config.ServerDrive + "\" + $config.ShareDir + "\" + $_.Departement
+$HomeLocation = $config.ServerDrive + "\" + $config.Path + "\" + $_.Departement + "\" + $SamAccName
+$HomeFolder = "\\" + $env:Computername + "\" + $config.Path + "\" + $_.Departement + "\" + $SamAccName
 
+## on vient créer nos OU si necessaire
+try{
+    New-ADOrganizationalUnit -Name $_.Departement -Path $config.OUPath -ErrorAction Stop
+    }
+    catch [System.ServiceModel.FaultException]{
+        Write-Host $_
+        Write-Host "OU Already exist"
+    }   
+## on vient créer nos Groupes si necessaire
+try{
+    New-ADGroup -Name $_.Departement -SamAccountName $_.Departement -Path $UserOUPath -GroupCategory Security -GroupScope Global -ErrorAction Stop
+    }
+    catch [System.ServiceModel.FaultException]{
+        Write-Host $_
+        Write-Host "Group Already exist"
+    }   
         try{
 #On vient créer notre utilisateur en forçant le renouvellement du mot de passe lors de l'identification
             New-ADUser -name $samAccName -GivenName $firstname -surname $surname `
-            -AccountPassword $DefaultPassword -ChangePasswordAtLogon $true `
+            -AccountPassword $DefaultPassword `
             -SamAccountName $samAccName -city $_.site `
             -Title $_.Fonction -Department $_.Departement -MobilePhone $_.Mobile -OfficePhone $_.Tel2 `
-            -EmailAddress $_.email -Office $_.Site
-            
+            -EmailAddress $_.email -Office $_.Site -Path $UserOUPath
             Write-Host $samAccName "is been create"
+            set-ADUser -identity $samAccName -ChangePasswordAtLogon $true
+            Write-Host "New Password will be ask at first log" 
         }
 # si le compte existe deja on le notifie
         catch [Microsoft.ActiveDirectory.Management.ADIdentityAlreadyExistsException]{
@@ -38,25 +56,24 @@ $HomeFolder = "\\" + $env:Computername + "\" + $config.Path + "\" + $SamAccName
             else {
                 set-ADUser $samAccName -enabled $false
                 Write-Host $samAccName " isnt enabled cause : " $_.Note
-            }  
-        }
-               
+            }
+#On met notre User dans son groupe
+    Add-ADGroupMember -identity $_.Departement -Members $samAccName  
+
 ## Add home folder on 'H:'
     $Users = Get-ADUser -Filter *
     $Users | ForEach-Object {
-            if($_.SamAccountName -eq $Users){
-                Set-ADUser -Identity $_.SamAccountName -HomeDirectory $HomeFolder -HomeDrive $config.Drive
-                Write-Host $_.SamAccountName" Name match with Current User"
-                Write-Host "Home folder for " $_.SamAccountName" is now available on " $config.Drive
+            if($samAccName -eq $_.SamAccountName){
+                Set-ADUser -Identity $samAccName -HomeDirectory $HomeFolder -HomeDrive $config.Drive
+                Write-Host $samAccName" Name match with Current User"
+                Write-Host "Home folder for " $samAccName" is now available on " $config.Drive
                 Write-Host "Network Location : " $HomeFolder
             }  
         } 
-        Write-Host $_.Exception   
+        Write-Host $_.Exception
 
 #On configure nos variable pour la suite (gestion des droit / ACL)
-#            $config.Fullcontrol= [System.Security.AccessControl.FileSystemRights]"FullControl"
             $Modify = [System.Security.AccessControl.FileSystemRights]"modify"
-            #$ReadAndExecute = [System.Security.AccessControl.FileSystemRights]"ReadAndExecute"
             $InheritanceFlags = [System.Security.AccessControl.InheritanceFlags] 1,2
             $PropagationFlags = [System.Security.AccessControl.PropagationFlags] 0
             $AccessControl = [System.Security.AccessControl.AccessControlType]"Allow"
@@ -78,6 +95,7 @@ $HomeFolder = "\\" + $env:Computername + "\" + $config.Path + "\" + $SamAccName
     $acl.SetAccessRule($AccessRule)
     Set-ACL -Path $HomeLocation $acl
     #$ShareDirpermission = $Account, $ReadAndExecute, $InheritanceFlags, $PropagationFlags, $AccessControl 
+}
 }
 }
 function main () {

@@ -53,4 +53,7 @@
 
     #conf Import CSV
     DefaultUserPass ="Password2019"
+
+    #OU Path
+    OUPath = "OU=ACME,DC=acme,DC=loc"
 }

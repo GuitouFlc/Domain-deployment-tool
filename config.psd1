@@ -1,5 +1,5 @@
 @{
-    #Ajout des fonctionnalités au serveur
+    #Ajout des fonctionnalites au serveur
     features = @(
         'DHCP',
         'AD-Domain-Services',
@@ -52,6 +52,5 @@
     Domain = "ACME"
 
     #conf Import CSV
-    ImportCSV = Import-csv "C:\Users\Administrator\Documents\Domain-deployment-tool\P05_Admin-test.csv"
-    DefaultPassword = (ConvertTo-SecureString 'Password2019' -AsPlainText -Force)
+    DefaultUserPass ="Password2019"
 }

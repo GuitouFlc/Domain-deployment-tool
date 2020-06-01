@@ -6,19 +6,20 @@ function CreateUser() {
 # On appel notre fichier de conf 
     $config = $args[0]
 
-$config.ImportCSV | ForEach-Object {
+Import-csv "C:\Users\Administrator\Documents\Domain-deployment-tool\P05_Admin-test.csv" | ForEach-Object {
 $firstname = $_.Prenom
 $surname = $_.Nom
 $samAccName = $firstname + " " + $surname
+$DefaultPassword = (ConvertTo-SecureString $config.DefaultUserPass -AsPlainText -Force)
 
-$config.completePath = $config.ServerDrive + "\" +$config.ShareDir
-$config.HomeLocation = $config.ServerDrive + "\" + $config.Path + "\" + $SamAccName
-$config.HomeFolder = "\\" + $env:Computername + "\" + $config.Path + "\" + $SamAccName
+$completePath = $config.ServerDrive + "\" + $config.ShareDir
+$HomeLocation = $config.ServerDrive + "\" + $config.Path + "\" + $SamAccName
+$HomeFolder = "\\" + $env:Computername + "\" + $config.Path + "\" + $SamAccName
 
         try{
 #On vient créer notre utilisateur en forçant le renouvellement du mot de passe lors de l'identification
             New-ADUser -name $samAccName -GivenName $firstname -surname $surname `
-            -AccountPassword $config.DefaultPassword -ChangePasswordAtLogon $true `
+            -AccountPassword $DefaultPassword -ChangePasswordAtLogon $true `
             -SamAccountName $samAccName -city $_.site `
             -Title $_.Fonction -Department $_.Departement -MobilePhone $_.Mobile -OfficePhone $_.Tel2 `
             -EmailAddress $_.email -Office $_.Site
@@ -44,39 +45,39 @@ $config.HomeFolder = "\\" + $env:Computername + "\" + $config.Path + "\" + $SamA
     $Users = Get-ADUser -Filter *
     $Users | ForEach-Object {
             if($_.SamAccountName -eq $Users){
-                Set-ADUser -Identity $_.SamAccountName -HomeDirectory $config.HomeFolder -HomeDrive $config.Drive
+                Set-ADUser -Identity $_.SamAccountName -HomeDirectory $HomeFolder -HomeDrive $config.Drive
                 Write-Host $_.SamAccountName" Name match with Current User"
                 Write-Host "Home folder for " $_.SamAccountName" is now available on " $config.Drive
-                Write-Host "Network Location : " $config.HomeFolder
+                Write-Host "Network Location : " $HomeFolder
             }  
         } 
         Write-Host $_.Exception   
 
 #On configure nos variable pour la suite (gestion des droit / ACL)
 #            $config.Fullcontrol= [System.Security.AccessControl.FileSystemRights]"FullControl"
-            $config.Modify = [System.Security.AccessControl.FileSystemRights]"modify"
-            $config.ReadAndExecute = [System.Security.AccessControl.FileSystemRights]"ReadAndExecute"
-            $config.InheritanceFlags = [System.Security.AccessControl.InheritanceFlags] 1,2
-            $config.PropagationFlags = [System.Security.AccessControl.PropagationFlags] 0
-            $config.AccessControl = [System.Security.AccessControl.AccessControlType]"Allow"
+            $Modify = [System.Security.AccessControl.FileSystemRights]"modify"
+            #$ReadAndExecute = [System.Security.AccessControl.FileSystemRights]"ReadAndExecute"
+            $InheritanceFlags = [System.Security.AccessControl.InheritanceFlags] 1,2
+            $PropagationFlags = [System.Security.AccessControl.PropagationFlags] 0
+            $AccessControl = [System.Security.AccessControl.AccessControlType]"Allow"
             
 #On Verifie que le dossier existe si ce n'est pas le cas on vient le créer
-            if(Test-Path -path $config.HomeLocation){
-                Write-Host $config.HomeLocation" exist"
+            if(Test-Path -path $HomeLocation){
+                Write-Host $HomeLocation" exist"
             }
             else{
-                New-Item -ItemType directory -Path $config.completePath -Name $samAccName -ErrorAction Stop
+                New-Item -ItemType directory -Path $completePath -Name $samAccName -ErrorAction Stop
             } 
 ## On définit de nouveaux droits pour notre utilisateur sur le dossier de partage et sur son dossier   
-    $config.Account = $config.Domain + "\" + $samAccName  
+    $Account = $config.Domain + "\" + $samAccName  
                 
-    $acl = Get-Acl -Path $config.completePath
+    $acl = Get-Acl -Path $completePath
 # On applique les droit sur le repertoire de l'utilisateur
-    $config.permission = $config.Account, $config.modify, $config.InheritanceFlags, $config.PropagationFlags, $config.AccessControl
-    $config.Accessrule = New-Object System.Security.AccessControl.FileSystemAccessRule $config.permission 
-    $acl.SetAccessRule($config.AccessRule)
-    Set-ACL -Path $config.HomeLocation $acl
-    $config.ShareDirpermission = $config.Account, $config.ReadAndExecute, $config.InheritanceFlags, $config.PropagationFlags, $config.AccessControl 
+    $permission = $Account, $modify, $InheritanceFlags, $PropagationFlags, $AccessControl
+    $Accessrule = New-Object System.Security.AccessControl.FileSystemAccessRule $permission 
+    $acl.SetAccessRule($AccessRule)
+    Set-ACL -Path $HomeLocation $acl
+    #$ShareDirpermission = $Account, $ReadAndExecute, $InheritanceFlags, $PropagationFlags, $AccessControl 
 }
 }
 function main () {
@@ -91,6 +92,8 @@ function main () {
     }
     try {
         $config = Import-PowerShellDataFile -Path $configfile
+        Write-Host $configfile "import success" -BackgroundColor Green 
+       
     }
     catch {
         Write-Host $_.Exception

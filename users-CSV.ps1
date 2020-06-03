@@ -42,7 +42,7 @@ try{
             -EmailAddress $_.email -Office $_.Site -Path $UserOUPath
             Write-Host $samAccName "is been create"
             set-ADUser -identity $samAccName -ChangePasswordAtLogon $true
-            Write-Host "New Password will be ask at first log" 
+            Write-Host "Password must be changed at first log" 
         }
 # si le compte existe deja on le notifie
         catch [Microsoft.ActiveDirectory.Management.ADIdentityAlreadyExistsException]{

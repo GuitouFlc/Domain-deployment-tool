@@ -16,13 +16,13 @@
     
     #conf DHCP
     dhcpName = "dhcp.acme.loc"
-    dhcpIP = "192.168.0.200"
+    dhcpIP = "192.168.50.200"
     dhcpconfigs = @(
         @{
             domain = "Paris"
-            scopid = "192.168.0.0"
-            startrange = "192.168.0.201"
-            endrange = "192.168.0.230"
+            scopid = "192.168.50.0"
+            startrange = "192.168.50.201"
+            endrange = "192.168.50.230"
             subnet = "255.255.255.0"
         },
         @{
@@ -37,7 +37,7 @@
     #conf Printer
     PrintName = "Cups PDF"
     Driver = "MS Publisher Color Printer"
-    Port = "http://192.168.0.47:631/printers/IMPRIMANTE_PDF"
+    Port = "http://192.168.50.210:631/printers/IMPRIMANTE_PDF"
     
     #conf smbshare
     ServerDrive = "C:"

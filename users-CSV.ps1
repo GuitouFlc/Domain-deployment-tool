@@ -6,7 +6,7 @@ function CreateUser() {
 # On appel notre fichier de conf 
     $config = $args[0]
 
-Import-csv "C:\Users\Administrator\Documents\Domain-deployment-tool\P05_Admin-test.csv" | ForEach-Object {
+Import-csv ".\P05_Admin-test.csv" | ForEach-Object {
 $firstname = $_.Prenom
 $surname = $_.Nom
 $samAccName = $firstname + " " + $surname

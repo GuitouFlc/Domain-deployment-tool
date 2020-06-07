@@ -78,13 +78,13 @@ function sharefolder() {
     $acl.SetAccessRuleProtection($true, $false)
 
     #Grant Admin FullControl
-    $Administrators = [System.Security.Principal.NTAccount] "Administrators"
+    $Administrators = [System.Security.Principal.NTAccount] "Administrateurs"
     $permission = $Administrators,"FullControl","ObjectInherit,ContainerInherit","None","Allow"
     $accessRule = New-Object System.Security.AccessControl.FileSystemAccessRule $permission
     $acl.AddAccessRule($accessRule)
 
     #Grant Everyone Write and ReadAttribute
-    $Everyone = [System.Security.Principal.NTAccount] "Everyone"
+    $Everyone = [System.Security.Principal.NTAccount] "Utilisateurs du domaine"
     $permission = $Everyone,"ListDirectory","ObjectInherit,ContainerInherit","None","Allow"
     $accessRule = New-Object System.Security.AccessControl.FileSystemAccessRule $permission
     $acl.AddAccessRule($accessRule)

@@ -9,9 +9,9 @@
     }
 
     #On met en place la tache planifiée pour l'execution du script
-
+    $backupHour = "9:00pm"
     $ScriptLocation = "c:\Users\Administrateur\Documents\Domain-deployment-tool\RemotedRobocopyBackup.ps1"
-    $Trigger = New-ScheduledTaskTrigger -At 11:06am -Daily
+    $Trigger = New-ScheduledTaskTrigger -At $backupHour -Daily
     $User = "NT Authority\SYSTEM"
     $Action = New-ScheduledTaskAction -Execute "Powershell.exe" -Argument $ScriptLocation
     Register-ScheduledTask -TaskName "RobocopyBackup" -Trigger $Trigger -user $User -Action $action -RunLevel Highest -Force

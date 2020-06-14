@@ -2,7 +2,7 @@
 .DESCRIPTION
     Script for automatize client Backup, only tested with Windows Server 2019 / Windows 10
 .EXAMPLE
-    AddUserAndFolder.ps1
+    RemotedRobocopyBackup.ps1
 .NOTES
     Author  : Guillaume FLOCH
     Version : 1.0 20200601 InitialBuild

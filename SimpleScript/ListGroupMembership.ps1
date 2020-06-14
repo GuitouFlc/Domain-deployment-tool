@@ -2,7 +2,7 @@
 .DESCRIPTION
     Script for add user and homefolder, only tested on Windows Server 2019
 .EXAMPLE
-    AddUserAndFolder.ps1
+    ListGroupMembership.ps1
 .NOTES
     Author  : Guillaume FLOCH
     Version : 1.0 20200601 InitialBuild

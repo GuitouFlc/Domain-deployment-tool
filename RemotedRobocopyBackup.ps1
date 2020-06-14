@@ -1,3 +1,12 @@
+    <#
+.DESCRIPTION
+    Script for automatize client Backup, only tested with Windows Server 2019 / Windows 10
+.EXAMPLE
+    AddUserAndFolder.ps1
+.NOTES
+    Author  : Guillaume FLOCH
+    Version : 1.0 20200601 InitialBuild
+#>
     #on crée un Event pour notre observateur d'evennement
     try{
         New-EventLog -LogName Application -Source "RobocopyBackup" -ErrorAction stop
